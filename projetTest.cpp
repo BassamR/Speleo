@@ -2,6 +2,7 @@
 #include <vector>
 #include <iomanip>
 #include <random>
+#include <ctime>
 using namespace std;
 typedef vector<bool> vecteur;
 typedef vector<vecteur> matrice;
@@ -62,7 +63,7 @@ double niveauB(const int& n, const double& p, const int& nbt) { // n (taille gri
     // }
 
     double compte = 0.0;
-    default_random_engine e;
+    default_random_engine e(time(0));
     for (int i = 0; i < nbt; ++i) {
         matrice passagetest;
         passagetest = genereGrille(n, p, e);
@@ -74,16 +75,24 @@ double niveauB(const int& n, const double& p, const int& nbt) { // n (taille gri
 }
 
 void niveauC() { // n (taille grille), nbt (nbr de grilles)
-    int NBP = 22;
+    int NBP = 102;
     double pas = 1.0/(NBP-2);
     double p = 0.0;
     int n, nbt;
     cin >> n >> nbt;
-    //cout << n << " " << nbt << endl;
+    cout << n << " " << nbt << endl;
     while (p <= 1.0) {
         cout << p << " " << niveauB(n, p, nbt) << endl;
-        p += pas;
+        if (niveauB(n, p, nbt) == 1.0) {
+            break;
+        } else {
+            p += pas;
+        }
     }
+    do {
+        cout << p << " " << 1.0 << endl;
+        p += pas;
+    } while (p <= 1.0);
 }
 
 matrice lireGrillePbm() {
