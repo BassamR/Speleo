@@ -1,71 +1,58 @@
 #include <iostream>
 #include <vector>
-#include <iomanip>
 #include <random>
 #include <ctime>
+#include <iomanip>
+#include <cmath>
+#include <algorithm>
 using namespace std;
-typedef vector<bool> vecteur;
-typedef vector<vecteur> matrice;
+typedef vector<bool> Vecteur;
+typedef vector<Vecteur> Matrice;
 
 void niveauA();
 double niveauB(const int& n, const double& p, const int& nbt);
 void niveauC();
-matrice lireGrillePbm(); // lire en tenant compte du format pbm
-void afficheTableauPbm(const matrice& tab); // afficher en pbm
-    //above algs need to be optimized for n>70
-void afficheTableau(const matrice& tab); // afficher un vector normalement
-vector<int> initPassage(const matrice& grilleLibre, matrice& grillePassage);
-void construirePassage(int a, int b, const matrice& grilleLibre, matrice& grillePassage,
+void choisirNiveau();
+Matrice lireGrillePbm(); // lire en tenant compte du format pbm
+void afficheTableauPbm(const Matrice& tab); // afficher en pbm
+vector<int> initPassage(const Matrice& grilleLibre, Matrice& grillePassage);
+void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, Matrice& grillePassage,
     const vector<int>& indexes);
-bool checkValidity(int a, int b, const matrice& grilleLibre, const matrice& grillePassage);
-bool existencePassage(const matrice& grille);
-matrice genereGrille(int n, double p, default_random_engine& e);
+bool checkValidity(const int& a, const int& b, const Matrice& grilleLibre, 
+    const Matrice& grillePassage);
+bool existencePassage(const Matrice& grille);
+Matrice genereGrille(const size_t& n, const double& p, default_random_engine& e);
 
 int main() {
     cout << setprecision(6);
     cout << fixed;
-    char head;
-    cin >> head;
-    if (head == 'a') {
-        niveauA();
-    } else if (head == 'b') {
-        int n, nbt;
-        double p;
-        cin >> n >> p >> nbt;
-        cout << niveauB(n, p, nbt) << endl;
-    } else if (head == 'c') {
-        niveauC();
-    } else {
-        cout << "niveau invalide";
-    }
+    choisirNiveau();
     return 0;
 }
 
 void niveauA() {
-    matrice libre;
-    libre = lireGrillePbm();
-    unsigned int n = libre.size();
-    matrice passage(n, vecteur(n));
+    Matrice libre(lireGrillePbm());
+    size_t n = libre.size();
+    Matrice passage(n, Vecteur(n));
 
     vector<int> indexes;
     indexes = initPassage(libre, passage);
-    for (int i = 0; i < indexes.size(); ++i) {
+    for (size_t i = 0; i < indexes.size(); ++i) {
         int x = indexes[i];
         construirePassage(0, x, libre, passage, indexes);
     }
     afficheTableauPbm(passage);
-} // fonctionne pour les grilles de petite taille
+}
 
-double niveauB(const int& n, const double& p, const int& nbt) { // n (taille grille), p (proba), nbt (nbr de grilles a generer)
-    // if (p > 1 or p < 0) {
-    //     cout << "probabilite incorrecte" << endl;
-    //     return 0;
-    // }
-
+double niveauB(const int& n, const double& p, const int& nbt) {
+    if (p > 1 or p < 0) {
+        cout << "probabilite incorrecte" << endl;
+        return 0;
+    }
     double compte = 0.0;
     default_random_engine e(time(0));
     for (int i = 0; i < nbt; ++i) {
-        matrice passagetest;
+        Matrice passagetest;
         passagetest = genereGrille(n, p, e);
         if (existencePassage(passagetest)) {
             ++compte;
@@ -74,68 +61,88 @@ double niveauB(const int& n, const double& p, const int& nbt) { // n (taille gri
     return compte/nbt;
 }
 
-void niveauC() { // n (taille grille), nbt (nbr de grilles)
-    int NBP = 102;
-    double pas = 1.0/(NBP-2);
-    double p = 0.0;
+void niveauC() {
     int n, nbt;
     cin >> n >> nbt;
-    cout << n << " " << nbt << endl;
-    while (p <= 1.0) {
-        cout << p << " " << niveauB(n, p, nbt) << endl;
-        if (niveauB(n, p, nbt) == 1.0) {
-            break;
-        } else {
-            p += pas;
-        }
-    }
+    const double MIN_DELTA_P = 0.01;
+    const double MAX_ERROR = 0.000001;
+    double min = 0.0;
+    double max = 1.0;
+    vector<double> p, fp;
+
     do {
-        cout << p << " " << 1.0 << endl;
-        p += pas;
-    } while (p <= 1.0);
+        double error = niveauB(n, (min+max)/2, nbt) - ((niveauB(n, min, nbt) + niveauB(n, max, nbt))/2);
+        double abserror = abs(error);
+        if (error > 0) {
+            p.push_back((max+min)/2);
+            fp.push_back(niveauB(n, (max+min)/2, nbt));
+            max = (max+min)/2;
+        } else {
+            p.push_back((max+min)/2);
+            fp.push_back(niveauB(n, (max+min)/2, nbt));
+            min = (max+min)/2;
+        }
+    } while ((max - min > MIN_DELTA_P) and (abs(niveauB(n, (min+max)/2, nbt) - ((niveauB(n, min, nbt) + niveauB(n, max, nbt))/2)) > MAX_ERROR));
+
+    sort(p.begin(), p.end());
+    sort(fp.begin(), fp.end());
+    cout << 0.0 << " " <<  0.0 << endl;
+    for (size_t i = 0; i < p.size(); ++i) {
+        cout << p[i] << " " << fp[i] << endl;
+    }
+    cout << 1.0 << " " << 1.0 << endl;
 }
 
-matrice lireGrillePbm() {
+void choisirNiveau() {
+    char niveau;
+    cin >> niveau;
+    switch (niveau) {
+        case 'a': niveauA(); break;
+        case 'b':
+            int n, nbt;
+            double p;
+            cin >> n >> p >> nbt;
+            cout << niveauB(n, p, nbt) << endl;
+            break;
+        case 'c': niveauC(); break;
+        default: cout << "niveau invalide" << endl; break;
+    }
+}
+
+Matrice lireGrillePbm() {
     int n;
     cin >> n;
-    matrice grille(n, vecteur(n));
-    bool a;
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            cin >> a;
-            grille[i][j] = !a;
+    Matrice grille(n, Vecteur(n));
+    bool cellule;
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            cin >> cellule;
+            grille[i][j] = not cellule;
         }
     }
     return grille;
-} // lire une grille en la transformant de pbm a c++
-//urgent: ajouter un saut de ligne si plus de 70 caracteres par ligne
+}
 
-void afficheTableauPbm(const matrice& tab) {
-    unsigned int n = tab.size();
+void afficheTableauPbm(const Matrice& tab) {
+    const int width = 69;
+    size_t n = tab.size();
     cout << "P1" << endl;
     cout << n << " " << n << endl;
-    for (auto ligne : tab) {
-        for (auto colonne : ligne) {
-            cout << !colonne << " ";
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            cout << not tab[i][j] << " ";
+            if (j % width == 0 and j != 0) {
+                cout << endl;
+            }
         }
         cout << endl;
     }
-} // affiche grille en transformant c++ en pbm
-//urgent: ajouter un saut de ligne si plus de 70 caracteres par ligne
+}
 
-void afficheTableau(const matrice& tab) {
-    for (auto ligne : tab) {
-        for (auto colonne : ligne) {
-            cout << colonne << " ";
-        }
-        cout << endl;
-    }
-} // affiche un tableau normalement
-
-vector<int> initPassage(const matrice& grilleLibre, matrice& grillePassage) {
-    unsigned int n = grilleLibre.size();
+vector<int> initPassage(const Matrice& grilleLibre, Matrice& grillePassage) {
+    size_t n = grilleLibre.size();
     vector<int> indexes;
-    for (int i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         if (grilleLibre[0][i] == 1) {
             grillePassage[0][i] = 1;
             indexes.push_back(i);
@@ -144,9 +151,9 @@ vector<int> initPassage(const matrice& grilleLibre, matrice& grillePassage) {
     return indexes;
 }
 
-void construirePassage(int a, int b, const matrice& grilleLibre, matrice& grillePassage, 
+void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, Matrice& grillePassage, 
     const vector<int>& indexes) {
-    unsigned int n = grilleLibre.size();
+    size_t n = grilleLibre.size();
     if (checkValidity(a-1, b, grilleLibre, grillePassage)) {
         grillePassage[a-1][b] = 1;
         construirePassage(a-1, b, grilleLibre, grillePassage, indexes);
@@ -165,46 +172,46 @@ void construirePassage(int a, int b, const matrice& grilleLibre, matrice& grille
     }
 }
 
-bool checkValidity(int a, int b, const matrice& grilleLibre, const matrice& grillePassage) {
-    unsigned int n = grilleLibre.size();
+bool checkValidity(const int& a, const int& b, const Matrice& grilleLibre, const Matrice& grillePassage) {
+    size_t n = grilleLibre.size();
     bool dehors = false;
     bool obstruee = false;
     bool visitee = false;
     if (a >= n or b >= n or a < 0 or b < 0) {
-        dehors = true; // true if outside the grille
+        dehors = true;
     } else {
-        obstruee = not grilleLibre[a][b]; //obstructed ? true if yes
-        visitee = grillePassage[a][b]; // true if grillepassage has been visited 
+        obstruee = not grilleLibre[a][b];
+        visitee = grillePassage[a][b];
     }
-    bool X = dehors or obstruee or visitee; // true if one of the conditions is met
+    bool X = dehors or obstruee or visitee;
     return not X;
-} // returns false when a cell is not valid
+}
 
-bool existencePassage(const matrice& grille) {
-    bool X = false;
+bool existencePassage(const Matrice& grille) {
+    bool passage = false;
     size_t n = grille.size();
-    for (int i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         if (grille[n-1][i] == 1) {
-            X = true;
+            passage = true;
         }
     }
-    return X;
-} // returns true if theres a free cell in the last line
+    return passage;
+}
 
-matrice genereGrille(int n, double p, default_random_engine& e) {
+Matrice genereGrille(const size_t& n, const double& p, default_random_engine& e) {
     bernoulli_distribution b(p);
-    matrice grille(n, vecteur(n));
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
+    Matrice grille(n, Vecteur(n));
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
             grille[i][j] = b(e);
         }
     }
-    matrice grillePassage(n, vecteur(n));
+    Matrice grillePassage(n, Vecteur(n));
     vector<int> indexes;
     indexes = initPassage(grille, grillePassage);
-    for (int i = 0; i < indexes.size(); ++i) {
+    for (size_t i = 0; i < indexes.size(); ++i) {
         int x = indexes[i];
         construirePassage(0, x, grille, grillePassage, indexes);
     }
     return grillePassage;
-} // generates a random grid and solves it
+}
