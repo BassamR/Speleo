@@ -9,10 +9,10 @@ using namespace std;
 typedef vector<bool> Vecteur;
 typedef vector<Vecteur> Matrice;
 
+void choisirNiveau();
 void niveauA();
 double niveauB(const int& n, const double& p, const int& nbt);
 void niveauC();
-void choisirNiveau();
 Matrice lireGrillePbm(); // lire en tenant compte du format pbm
 void afficheTableauPbm(const Matrice& tab); // afficher en pbm
 vector<int> initPassage(const Matrice& grilleLibre, Matrice& grillePassage);
@@ -28,6 +28,22 @@ int main() {
     cout << fixed;
     choisirNiveau();
     return 0;
+}
+
+void choisirNiveau() {
+    char niveau;
+    cin >> niveau;
+    switch (niveau) {
+        case 'a': niveauA(); break;
+        case 'b':
+            int n, nbt;
+            double p;
+            cin >> n >> p >> nbt;
+            cout << niveauB(n, p, nbt) << endl;
+            break;
+        case 'c': niveauC(); break;
+        default: cout << "niveau invalide" << endl; break;
+    }
 }
 
 void niveauA() {
@@ -72,7 +88,6 @@ void niveauC() {
 
     do {
         double error = niveauB(n, (min+max)/2, nbt) - ((niveauB(n, min, nbt) + niveauB(n, max, nbt))/2);
-        double abserror = abs(error);
         if (error > 0) {
             p.push_back((max+min)/2);
             fp.push_back(niveauB(n, (max+min)/2, nbt));
@@ -93,22 +108,6 @@ void niveauC() {
     cout << 1.0 << " " << 1.0 << endl;
 }
 
-void choisirNiveau() {
-    char niveau;
-    cin >> niveau;
-    switch (niveau) {
-        case 'a': niveauA(); break;
-        case 'b':
-            int n, nbt;
-            double p;
-            cin >> n >> p >> nbt;
-            cout << niveauB(n, p, nbt) << endl;
-            break;
-        case 'c': niveauC(); break;
-        default: cout << "niveau invalide" << endl; break;
-    }
-}
-
 Matrice lireGrillePbm() {
     int n;
     cin >> n;
@@ -124,16 +123,16 @@ Matrice lireGrillePbm() {
 }
 
 void afficheTableauPbm(const Matrice& tab) {
-    const int width = 69;
+    const int width = 35;
     size_t n = tab.size();
     cout << "P1" << endl;
     cout << n << " " << n << endl;
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {
-            cout << not tab[i][j] << " ";
             if (j % width == 0 and j != 0) {
                 cout << endl;
             }
+            cout << not tab[i][j] << " ";
         }
         cout << endl;
     }
@@ -153,7 +152,6 @@ vector<int> initPassage(const Matrice& grilleLibre, Matrice& grillePassage) {
 
 void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, Matrice& grillePassage, 
     const vector<int>& indexes) {
-    size_t n = grilleLibre.size();
     if (checkValidity(a-1, b, grilleLibre, grillePassage)) {
         grillePassage[a-1][b] = 1;
         construirePassage(a-1, b, grilleLibre, grillePassage, indexes);
