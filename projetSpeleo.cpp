@@ -13,11 +13,11 @@ void choisirNiveau();
 void niveauA();
 double niveauB(const int& n, const double& p, const int& nbt);
 void niveauC();
-Matrice lireGrillePbm(); // lire en tenant compte du format pbm
-void afficheTableauPbm(const Matrice& tab); // afficher en pbm
+Matrice lireGrillePbm();
+void afficheTableauPbm(const Matrice& tab);
 vector<int> initPassage(const Matrice& grilleLibre, Matrice& grillePassage);
-void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, Matrice& grillePassage,
-    const vector<int>& indexes);
+void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, 
+	Matrice& grillePassage,const vector<int>& indexes);
 bool checkValidity(const int& a, const int& b, const Matrice& grilleLibre, 
     const Matrice& grillePassage);
 bool existencePassage(const Matrice& grille);
@@ -87,7 +87,8 @@ void niveauC() {
     vector<double> p, fp;
 
     do {
-        double error = niveauB(n, (min+max)/2, nbt) - ((niveauB(n, min, nbt) + niveauB(n, max, nbt))/2);
+        double error = niveauB(n, (min+max)/2, nbt) - ((niveauB(n, min, nbt) 
+			+ niveauB(n, max, nbt))/2);
         if (error > 0) {
             p.push_back((max+min)/2);
             fp.push_back(niveauB(n, (max+min)/2, nbt));
@@ -97,7 +98,8 @@ void niveauC() {
             fp.push_back(niveauB(n, (max+min)/2, nbt));
             min = (max+min)/2;
         }
-    } while ((max - min > MIN_DELTA_P) and (abs(niveauB(n, (min+max)/2, nbt) - ((niveauB(n, min, nbt) + niveauB(n, max, nbt))/2)) > MAX_ERROR));
+    } while ((max - min > MIN_DELTA_P) and (abs(niveauB(n, (min+max)/2, nbt) - 
+		((niveauB(n, min, nbt) + niveauB(n, max, nbt))/2)) > MAX_ERROR));
 
     sort(p.begin(), p.end());
     sort(fp.begin(), fp.end());
@@ -150,7 +152,8 @@ vector<int> initPassage(const Matrice& grilleLibre, Matrice& grillePassage) {
     return indexes;
 }
 
-void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, Matrice& grillePassage, 
+void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, 
+	Matrice& grillePassage, 
     const vector<int>& indexes) {
     if (checkValidity(a-1, b, grilleLibre, grillePassage)) {
         grillePassage[a-1][b] = 1;
@@ -170,8 +173,9 @@ void construirePassage(const int& a, const int& b, const Matrice& grilleLibre, M
     }
 }
 
-bool checkValidity(const int& a, const int& b, const Matrice& grilleLibre, const Matrice& grillePassage) {
-    size_t n = grilleLibre.size();
+bool checkValidity(const int& a, const int& b, const Matrice& grilleLibre, 
+	const Matrice& grillePassage) {
+    int n = grilleLibre.size();
     bool dehors = false;
     bool obstruee = false;
     bool visitee = false;
